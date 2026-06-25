@@ -51,42 +51,14 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
-      body: Center(
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 80, height: 6, color: const Color(0xFF4A3728)),
-              const SizedBox(height: 32),
-
-              // LOGO
+              const Spacer(flex: 2),
               Image.asset('assets/logo.png', width: 200, height: 200),
-              const SizedBox(height: 28),
-
-              const Text(
-                'RABTA',
-                style: TextStyle(
-                  fontSize: 64,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF4A3728),
-                  letterSpacing: 14,
-                  height: 1,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                '/// INCIDENT MANAGEMENT',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF6F4E37),
-                  letterSpacing: 4,
-                ),
-              ),
               const SizedBox(height: 48),
-
-              // Loading bar
               AnimatedBuilder(
                 animation: _bar,
                 builder: (context, child) {
@@ -137,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              'SYSTEM BOOT',
+                              'Loading',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -161,27 +133,7 @@ class _SplashScreenState extends State<SplashScreen>
                   );
                 },
               ),
-
-              const Spacer(),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Color(0xFF4A3728), width: 3),
-                  ),
-                ),
-                child: const Text(
-                  'EST. 2026 /// v1.0',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF6F4E37),
-                    letterSpacing: 3,
-                  ),
-                ),
-              ),
+              const Spacer(flex: 3),
             ],
           ),
         ),
