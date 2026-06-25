@@ -7,19 +7,12 @@ class SignupPage extends StatelessWidget {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondary) => const SignupPage(),
       transitionsBuilder: (context, animation, secondary, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          )),
+        return FadeTransition(
+          opacity: animation,
           child: child,
         );
       },
-      transitionDuration: const Duration(milliseconds: 350),
+      transitionDuration: const Duration(milliseconds: 300),
     );
   }
 
