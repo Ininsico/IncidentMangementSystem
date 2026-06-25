@@ -51,25 +51,25 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
-      body: SafeArea(
+      body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Spacer(flex: 2),
               Image.asset('assets/logo.png', width: 200, height: 200),
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
               AnimatedBuilder(
                 animation: _bar,
                 builder: (context, child) {
                   return SizedBox(
-                    width: 300,
+                    width: 280,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 300,
-                          height: 28,
+                          width: 280,
+                          height: 24,
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: const Color(0xFF4A3728),
@@ -104,14 +104,14 @@ class _SplashScreenState extends State<SplashScreen>
                             }),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
                               'Loading',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF4A3728),
                                 letterSpacing: 2,
@@ -120,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
                             Text(
                               '${(_bar.value * 100).toInt().toString().padLeft(3, '0')}%',
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w900,
                                 color: Color(0xFF4A3728),
                                 letterSpacing: 3,
@@ -133,7 +133,6 @@ class _SplashScreenState extends State<SplashScreen>
                   );
                 },
               ),
-              const Spacer(flex: 3),
             ],
           ),
         ),
