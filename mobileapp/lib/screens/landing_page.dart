@@ -14,19 +14,8 @@ class LoginPage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // LOGO — front and center
-                Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFF4A3728), width: 6),
-                    color: Colors.white,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Image.asset('assests/logo.png', fit: BoxFit.contain),
-                  ),
-                ),
+                // LOGO
+                Image.asset('assets/logo.png', width: 160, height: 160),
                 const SizedBox(height: 24),
 
                 const Text(

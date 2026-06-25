@@ -60,19 +60,8 @@ class _SplashScreenState extends State<SplashScreen>
               Container(width: 80, height: 6, color: const Color(0xFF4A3728)),
               const SizedBox(height: 32),
 
-              // LOGO — big, bold, center stage
-              Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFF4A3728), width: 6),
-                  color: Colors.white,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Image.asset('assests/logo.png', fit: BoxFit.contain),
-                ),
-              ),
+              // LOGO
+              Image.asset('assets/logo.png', width: 200, height: 200),
               const SizedBox(height: 28),
 
               const Text(
