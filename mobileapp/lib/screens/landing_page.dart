@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -144,21 +145,24 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                height: 60,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFF4A3728), width: 4),
-                  color: Colors.white,
-                ),
-                child: const Center(
-                  child: Text(
-                    'SIGN UP',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF4A3728),
-                      letterSpacing: 10,
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(SignupPage.route()),
+                child: Container(
+                  width: double.infinity,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFF4A3728), width: 4),
+                    color: Colors.white,
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'SIGN UP',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF4A3728),
+                        letterSpacing: 10,
+                      ),
                     ),
                   ),
                 ),
