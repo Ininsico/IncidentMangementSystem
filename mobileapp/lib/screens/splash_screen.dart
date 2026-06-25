@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'landing_page.dart' show LoginPage;
+import 'landing_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -9,29 +9,15 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _bar;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-      duration: const Duration(milliseconds: 3000),
-      vsync: this,
-    );
-    _bar = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.linear),
-    );
-    _ctrl.forward();
-
-    Timer(const Duration(seconds: 4), () {
+    Timer(const Duration(seconds: 2), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondary) =>
-                const LoginPage(),
+            pageBuilder: (context, animation, secondary) => const LoginPage(),
             transitionsBuilder: (context, animation, secondary, child) =>
                 FadeTransition(opacity: animation, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -42,99 +28,25 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F0),
+      backgroundColor: const Color(0xFFF8F6F3),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset('assets/logo.png', width: 200, height: 200),
-              const SizedBox(height: 40),
-              AnimatedBuilder(
-                animation: _bar,
-                builder: (context, child) {
-                  return SizedBox(
-                    width: 280,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 280,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: const Color(0xFF4A3728),
-                              width: 4,
-                            ),
-                            color: Colors.white,
-                          ),
-                          child: Row(
-                            children: List.generate(6, (i) {
-                              final filled = _bar.value >= (i + 1) / 6;
-                              final current = _bar.value >= i / 6 &&
-                                  _bar.value < (i + 1) / 6;
-                              return Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: filled
-                                        ? const Color(0xFF4A3728)
-                                        : current
-                                            ? const Color(0xFF8B7355)
-                                            : Colors.transparent,
-                                    border: i < 5
-                                        ? const Border(
-                                            right: BorderSide(
-                                              color: Color(0xFF4A3728),
-                                              width: 3,
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Loading',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF4A3728),
-                                letterSpacing: 2,
-                              ),
-                            ),
-                            Text(
-                              '${(_bar.value * 100).toInt().toString().padLeft(3, '0')}%',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF4A3728),
-                                letterSpacing: 3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logo.png', width: 120, height: 120),
+            const SizedBox(height: 12),
+            const Text(
+              'Rabta',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2C1810),
+                letterSpacing: 1,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
