@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
-import '../widgets/animated_bg.dart';
 import 'home_page.dart';
 import 'verification_screen.dart';
 
@@ -14,11 +13,14 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
   final _auth = AuthService();
   bool _isSignUp = false;
   bool _loading = false;
   String? _error;
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -27,7 +29,26 @@ class _LoginPageState extends State<LoginPage> {
   final _confirmController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _slideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+    _slideController.forward();
+  }
+
+  @override
   void dispose() {
+    _slideController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
@@ -37,10 +58,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _submit() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() { _loading = true; _error = null; });
 
     try {
       if (_isSignUp) {
@@ -56,11 +74,9 @@ class _LoginPageState extends State<LoginPage> {
           name: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
         );
-
         if (mounted) {
-          final email = result['email'] as String;
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => VerificationScreen(email: email)),
+            MaterialPageRoute(builder: (_) => VerificationScreen(email: result['email'] as String)),
           );
         }
       } else {
@@ -68,7 +84,6 @@ class _LoginPageState extends State<LoginPage> {
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
-
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const HomePage()),
@@ -77,125 +92,246 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (err) {
       if (err is ApiException && err.data?['code'] == 'EMAIL_NOT_VERIFIED') {
-        final email = err.data!['email'] as String;
         if (mounted) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => VerificationScreen(email: email)),
+            MaterialPageRoute(builder: (_) => VerificationScreen(email: err.data!['email'] as String)),
           );
         }
         return;
       }
-      setState(() {
-        _error = err.toString().replaceFirst('Exception: ', '');
-      });
+      setState(() { _error = err.toString().replaceFirst('Exception: ', ''); });
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
+  void _toggleMode() {
+    setState(() { _isSignUp = !_isSignUp; _error = null; });
+    _slideController.reset();
+    _slideController.forward();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final heroHeight = size.height * 0.32;
+
     return Scaffold(
-      body: AnimatedBg(
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 32),
-                    Image.asset('assets/logo.png', width: 100, height: 100),
-                    const SizedBox(height: 16),
-                    if (_isSignUp)
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        transitionBuilder: (w, a) => FadeTransition(opacity: a, child: w),
-                        child: Text(
-                          'CREATE ACCOUNT',
-                          key: ValueKey(_isSignUp),
-                          style: GoogleFonts.sora(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                            letterSpacing: 3,
-                          ),
-                        ),
+      body: Column(
+        children: [
+          Container(
+            height: heroHeight,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: AppColors.heroGradient,
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Spacer(),
+                  Hero(
+                    tag: 'app_logo',
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    const SizedBox(height: 24),
-                    _buildField(label: 'EMAIL', hint: 'you@example.com', controller: _emailController, type: TextInputType.emailAddress),
-                    const SizedBox(height: 14),
-                    _buildField(label: 'PASSWORD', hint: '••••••••', controller: _passwordController, obscure: true),
-                    const SizedBox(height: 8),
-                    if (!_isSignUp)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                          ),
-                          child: Text(
-                            'Forgot password?',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.accentDark,
-                              letterSpacing: 0.5,
+                      child: Image.asset('assets/logo.png', width: 44, height: 44),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'RABTA',
+                    style: GoogleFonts.sora(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textOnDark,
+                      letterSpacing: 10,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Incident Management',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textOnDark.withOpacity(0.6),
+                      letterSpacing: 2.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    height: 4,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _isSignUp ? 'Create Account' : 'Welcome Back',
+                            style: GoogleFonts.sora(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
                             ),
                           ),
-                        ),
-                      ),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 350),
-                      curve: Curves.easeInOut,
-                      alignment: Alignment.topCenter,
-                      child: _isSignUp
-                          ? Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const SizedBox(height: 4),
-                                _buildField(label: 'FULL NAME', hint: 'Ahmed Khan', controller: _nameController),
-                                const SizedBox(height: 14),
-                                _buildField(label: 'PHONE', hint: '+92 300 1234567', controller: _phoneController, type: TextInputType.phone),
-                                const SizedBox(height: 14),
-                                _buildField(label: 'CONFIRM PASSWORD', hint: 'Re-enter password', controller: _confirmController, obscure: true),
-                              ],
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          _error!,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.error,
+                          const SizedBox(height: 4),
+                          Text(
+                            _isSignUp ? 'Enter your details to get started' : 'Sign in to your account to continue',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: 340,
-                      child: Column(
-                        children: [
+                          const SizedBox(height: 28),
+                          _buildField(
+                            label: 'Email',
+                            hint: 'you@example.com',
+                            controller: _emailController,
+                            type: TextInputType.emailAddress,
+                            icon: Icons.email_outlined,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildField(
+                            label: 'Password',
+                            hint: 'Enter your password',
+                            controller: _passwordController,
+                            obscure: true,
+                            icon: Icons.lock_outlined,
+                          ),
+                          if (!_isSignUp) ...[
+                            const SizedBox(height: 6),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {},
+                                style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4)),
+                                child: Text(
+                                  'Forgot password?',
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.accentDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                          AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 300),
+                            crossFadeState: _isSignUp ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                            firstChild: const SizedBox.shrink(),
+                            secondChild: Column(
+                              children: [
+                                _buildField(
+                                  label: 'Full Name',
+                                  hint: 'Ahmed Khan',
+                                  controller: _nameController,
+                                  icon: Icons.person_outlined,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildField(
+                                  label: 'Phone',
+                                  hint: '+92 300 1234567',
+                                  controller: _phoneController,
+                                  type: TextInputType.phone,
+                                  icon: Icons.phone_outlined,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildField(
+                                  label: 'Confirm Password',
+                                  hint: 'Re-enter password',
+                                  controller: _confirmController,
+                                  obscure: true,
+                                  icon: Icons.lock_outlined,
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (_error != null) ...[
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.errorLight,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline, size: 16, color: AppColors.error),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _error!,
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.error,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 22),
                           GestureDetector(
                             onTap: _loading ? null : _submit,
                             child: Container(
                               width: double.infinity,
-                              height: 50,
+                              height: 52,
                               decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(6),
+                                gradient: const LinearGradient(
+                                  colors: [AppColors.primary, AppColors.primaryLight],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
                               child: Center(
                                 child: _loading
                                     ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
+                                        width: 22,
+                                        height: 22,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2.5,
                                           color: AppColors.textOnDark,
@@ -213,40 +349,38 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            onTap: _loading ? null : () => setState(() => _isSignUp = !_isSignUp),
-                            child: Container(
-                              width: double.infinity,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.accent, width: 2),
-                                borderRadius: BorderRadius.circular(6),
-                                color: AppColors.surface,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  _isSignUp ? 'BACK TO LOGIN' : 'SIGN UP',
-                                  style: GoogleFonts.sora(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.accent,
-                                    letterSpacing: 4,
-                                  ),
+                          const SizedBox(height: 18),
+                          Center(
+                            child: GestureDetector(
+                              onTap: _loading ? null : _toggleMode,
+                              child: RichText(
+                                text: TextSpan(
+                                  style: GoogleFonts.dmSans(fontSize: 14, color: AppColors.textSecondary),
+                                  children: [
+                                    TextSpan(text: _isSignUp ? 'Already have an account? ' : "Don't have an account? "),
+                                    TextSpan(
+                                      text: _isSignUp ? 'Login' : 'Sign Up',
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.accentDark,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ),
+                          const SizedBox(height: 8),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -257,27 +391,27 @@ class _LoginPageState extends State<LoginPage> {
     required TextEditingController controller,
     bool obscure = false,
     TextInputType? type,
+    IconData? icon,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          padding: const EdgeInsets.only(left: 2, bottom: 6),
           child: Text(
             label,
             style: GoogleFonts.dmSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryLight,
-              letterSpacing: 1.5,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.border, width: 2),
-            borderRadius: BorderRadius.circular(6),
             color: AppColors.inputFill,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight, width: 1.5),
           ),
           child: TextField(
             controller: controller,
@@ -294,10 +428,11 @@ class _LoginPageState extends State<LoginPage> {
               hintStyle: GoogleFonts.dmSans(
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
-                color: AppColors.textSecondary,
+                color: AppColors.textTertiary,
               ),
               border: InputBorder.none,
               focusedBorder: InputBorder.none,
+              prefixIcon: icon != null ? Icon(icon, size: 20, color: AppColors.textTertiary) : null,
             ),
           ),
         ),
@@ -305,5 +440,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-
