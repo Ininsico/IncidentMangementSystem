@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "mobileapp" "\0"
+            VALUE "CompanyName", "" "\0"
+            VALUE "FileDescription", "RABTA" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "mobileapp" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "mobileapp.exe" "\0"
-            VALUE "ProductName", "mobileapp" "\0"
+            VALUE "InternalName", "RABTA" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 RABTA. All rights reserved." "\0"
+            VALUE "OriginalFilename", "RABTA.exe" "\0"
+            VALUE "ProductName", "RABTA" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

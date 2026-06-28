@@ -1,11 +1,11 @@
 {
-    "name": "mobileapp",
-    "short_name": "mobileapp",
+    "name": "RABTA",
+    "short_name": "RABTA",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F8F6F3",
+    "theme_color": "#4A3728",
+    "description": "Incident Management System",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
