@@ -49,4 +49,37 @@ async function sendVerificationCode(email, code) {
   await transport.sendMail(mailOptions);
 }
 
-module.exports = { sendVerificationCode };
+async function sendPasswordResetEmail(email, token) {
+  const transport = getTransporter();
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5001'}/reset-password?token=${token}`;
+
+  const mailOptions = {
+    from: `"RABTA" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Reset your RABTA password',
+    html: `
+      <div style="font-family: 'DM Sans', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #F6F4F0;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="font-family: 'Sora', Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 8px; color: #0F1B2D; margin: 0;">RABTA</h1>
+          <p style="font-size: 12px; color: #5B697D; letter-spacing: 2px; margin: 4px 0 0;">Incident Management</p>
+        </div>
+        <div style="background: #FFFFFF; border-radius: 6px; padding: 32px 24px; border: 1px solid #D9D4CC;">
+          <h2 style="font-family: 'Sora', Arial, sans-serif; font-size: 18px; font-weight: 700; color: #0F1B2D; margin: 0 0 8px;">Reset your password</h2>
+          <p style="font-size: 14px; color: #5B697D; line-height: 1.6; margin: 0 0 24px;">
+            Click the button below to reset your password. This link expires in 1 hour.
+          </p>
+          <div style="text-align: center; margin-bottom: 24px;">
+            <a href="${resetUrl}" style="display: inline-block; font-family: 'Sora', Arial, sans-serif; font-size: 16px; font-weight: 700; color: #FFFFFF; background: #0F1B2D; padding: 14px 32px; border-radius: 6px; text-decoration: none; letter-spacing: 1px;">RESET PASSWORD</a>
+          </div>
+          <p style="font-size: 12px; color: #5B697D; margin: 0;">
+            If you didn't request a password reset, ignore this email.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  await transport.sendMail(mailOptions);
+}
+
+module.exports = { sendVerificationCode, sendPasswordResetEmail };

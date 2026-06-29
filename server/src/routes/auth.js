@@ -1,5 +1,8 @@
 const { Router } = require('express');
-const { register, login, verifyEmail, resendCode, getProfile, updateProfile } = require('../controllers/authController');
+const {
+  register, login, verifyEmail, resendCode, getProfile, updateProfile,
+  forgotPassword, resetPassword, changePassword, verifyToken,
+} = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 
@@ -42,6 +45,26 @@ router.post(
   login
 );
 
+router.post(
+  '/forgot-password',
+  validate({ email: ['required', 'email'] }),
+  forgotPassword
+);
+
+router.post(
+  '/reset-password',
+  validate({
+    token: ['required'],
+    password: ['required', 'password'],
+  }),
+  resetPassword
+);
+
+router.post('/change-password', authenticate, validate({
+  currentPassword: ['required'],
+  newPassword: ['required', 'password'],
+}), changePassword);
+
 router.get('/profile', authenticate, getProfile);
 
 router.put(
@@ -53,5 +76,7 @@ router.put(
   }),
   updateProfile
 );
+
+router.get('/verify-token', authenticate, verifyToken);
 
 module.exports = router;
