@@ -1,11 +1,13 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const VerificationCode = require('../models/VerificationCode');
-const { sendVerificationCode } = require('../services/emailService');
+const PasswordReset = require('../models/PasswordReset');
+const { sendVerificationCode, sendPasswordResetEmail } = require('../services/emailService');
 
 function generateToken(user) {
   return jwt.sign(
-    { uid: user._id, email: user.email },
+    { uid: user._id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -151,6 +153,10 @@ async function login(req, res) {
       });
     }
 
+    if (!user.isActive) {
+      return res.status(403).json({ error: 'Account has been deactivated' });
+    }
+
     const token = generateToken(user);
 
     return res.status(200).json({
@@ -208,4 +214,107 @@ async function updateProfile(req, res) {
   }
 }
 
-module.exports = { register, login, verifyEmail, resendCode, getProfile, updateProfile };
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(200).json({ success: true, message: 'If the email exists, a reset link has been sent' });
+    }
+
+    await PasswordReset.deleteMany({ email: normalizedEmail, used: false });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await PasswordReset.create({
+      email: normalizedEmail,
+      token,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+    });
+
+    try {
+      await sendPasswordResetEmail(normalizedEmail, token);
+    } catch (emailErr) {
+      console.error('Failed to send password reset email:', emailErr.message);
+    }
+
+    return res.status(200).json({ success: true, message: 'If the email exists, a reset link has been sent' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function resetPassword(req, res) {
+  try {
+    const { token, password } = req.body;
+
+    const resetDoc = await PasswordReset.findOne({ token, used: false, expiresAt: { $gt: new Date() } });
+    if (!resetDoc) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const user = await User.findOne({ email: resetDoc.email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.password = password;
+    await user.save();
+
+    resetDoc.used = true;
+    await resetDoc.save();
+
+    return res.status(200).json({ success: true, message: 'Password has been reset successfully' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function changePassword(req, res) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user.uid);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const valid = await user.comparePassword(currentPassword);
+    if (!valid) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({ success: true, message: 'Password changed successfully' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function verifyToken(req, res) {
+  try {
+    const user = await User.findById(req.user.uid);
+    if (!user || !user.isActive) {
+      return res.status(401).json({ valid: false, error: 'User not found or inactive' });
+    }
+    return res.status(200).json({ valid: true, user: user.toJSON() });
+  } catch (err) {
+    console.error('Verify token error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = {
+  register, login, verifyEmail, resendCode, getProfile, updateProfile,
+  forgotPassword, resetPassword, changePassword, verifyToken,
+};
